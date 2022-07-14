@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# VCPKG
+/vcpkg*
+
+/.vs
+/Debug
+/*/Debug
+/Release
+/*/Release
