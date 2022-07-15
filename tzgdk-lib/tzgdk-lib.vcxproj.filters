@@ -24,12 +24,18 @@
     <ClInclude Include="tzgdk-lib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Scancodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="tzgdk-lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scancodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

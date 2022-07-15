@@ -11,8 +11,8 @@ void TZGDK::GameLoop()
 
 	if (!initialized)
 	{
-		TZGDK::loadMusic("assets/sounds/stream/underground.flac", 1);
-		TZGDK::playMusic(1);
+		//TZGDK::loadMusic("assets/sounds/stream/underground.flac", 1);
+		//TZGDK::playMusic(1);
 
 		TZGDK::setWindowSize(320, 320);
 		TZGDK::setWindowTitle("TZGDK TEST");
@@ -33,7 +33,7 @@ void TZGDK::GameLoop()
 	TZGDK::clearWindow(RGB(0, 0, 0));
 	
 
-	/*if (!keypressed && TZGDK::getLastScanCode() >= 0)
+	if (!keypressed && tzgdk::B() && tzgdk::V())
 	{
 		keypressed = true;
 		//TZGDK::deleteSprite(1);
@@ -41,11 +41,11 @@ void TZGDK::GameLoop()
 		TZGDK::setSpriteVisible(1, false);
 	}
 	else if(!keypressed)
-		TZGDK::sprite(1, tileX++, 0, 1);*/
+		TZGDK::sprite(1, tileX++, 0, 1);
 
-	if (getLastScanCode() >= 0)
+	/*if (getLastScanCode() >= 0)
 	{
 		std::cout << getLastScanCode() << std::endl;
-	}
+	}*/
 }
 

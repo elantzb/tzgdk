@@ -3,6 +3,7 @@
 //#include <thread>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include "Scancodes.h"
 
 struct RGB 
 {
@@ -53,6 +54,7 @@ public:
 		static TZGDK instance;
 		return instance;
 	}
+
 	static void init();
 	static void destroy();
 	static void draw_sprites();

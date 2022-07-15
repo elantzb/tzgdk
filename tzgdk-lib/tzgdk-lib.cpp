@@ -269,6 +269,11 @@ int main(char* args[], int nargs)
 
 			case sf::Event::KeyPressed:
 				TZGDK::lastScanCode = event.key.code;
+				tzgdk::trigger_scancode(event.key.code);
+				break;
+
+			case sf::Event::KeyReleased:
+				tzgdk::untrigger_scancode(event.key.code);
 				break;
 
 			default:
