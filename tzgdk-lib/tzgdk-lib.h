@@ -33,18 +33,6 @@ namespace tzgdk
 
 	namespace admin
 	{
-		//std::map<int, const char*>* musicMap;
-		//sf::Music* currentMusic;
-
-		//sf::RenderWindow* window;
-
-		/// TODO: Investigate multi-threading for drawing
-		//std::thread* drawThread;
-
-		//std::map<int, sf::Image*>* loadedImages;
-		//std::map<int, sf::Texture*>* loadedTextures;
-		//std::map<int, SpriteWrapper>* loadedSprites;
-
 		void init();
 		void destroy();
 		void draw_sprites();

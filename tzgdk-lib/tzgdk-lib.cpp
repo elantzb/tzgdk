@@ -23,6 +23,9 @@ namespace tzgdk
 		std::map<int, sf::Texture*>* loadedTextures;
 		std::map<int, SpriteWrapper>* loadedSprites;
 
+		/// TODO: Investigate multi-threading for drawing
+		//std::thread* drawThread;
+
 		void init()
 		{
 			musicMap = new std::map<int, const char*>;
@@ -30,7 +33,6 @@ namespace tzgdk
 			currentMusic = new sf::Music;
 
 			admin::window = new sf::RenderWindow(sf::VideoMode(320, 320, 32), "My Window");
-			//admin::window)).setSize(sf::Vector2u(64, 64));
 
 			loadedImages = new std::map<int, sf::Image*>;
 
@@ -116,7 +118,7 @@ namespace tzgdk
 		admin::currentMusic->stop();
 	}
 
-	// admin::window //
+	// WINDOW //
 
 	void setWindowSize(int width, int height)
 	{

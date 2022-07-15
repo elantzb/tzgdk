@@ -1,6 +1,4 @@
 #include <iostream>
-//#include <SFML/Graphics.hpp>
-//#include <SFML/Audio.hpp>
 #include "../tzgdk-lib/tzgdk-lib.h"
 
 void tzgdk::GameLoop()
@@ -25,8 +23,6 @@ void tzgdk::GameLoop()
 		tzgdk::sprite(1, tileX, 0, 1);
 		tzgdk::setSpriteTextureCoords(1, 64, 0, 32, 32);
 
-		//std::cout << tzgdk::getSpriteWidth(1);
-
 		initialized = true;
 	}
 
@@ -43,9 +39,5 @@ void tzgdk::GameLoop()
 	else if(!keypressed)
 		tzgdk::sprite(1, tileX++, 0, 1);
 
-	/*if (getLastScanCode() >= 0)
-	{
-		std::cout << getLastScanCode() << std::endl;
-	}*/
 }
 
