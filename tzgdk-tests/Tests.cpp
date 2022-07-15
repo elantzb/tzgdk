@@ -1,50 +1,51 @@
 #include <iostream>
-#include <SFML/Graphics.hpp>
+//#include <SFML/Graphics.hpp>
 //#include <SFML/Audio.hpp>
 #include "../tzgdk-lib/tzgdk-lib.h"
 
-int main(char* args[], int nargs)
+void TZGDK::GameLoop()
 {
-	TZGDK::init();
+	static bool initialized = false;
+	static bool keypressed = false;
+	static float tileX = 0;
 
-	TZGDK::loadMusic("assets/sounds/stream/underground.flac", 1);
-	int musicIdx = TZGDK::playMusic(1);
-
-	sf::RenderWindow window(sf::VideoMode(800, 600), "My Window");
-
-
-	sf::Texture texture;
-	texture.loadFromFile("assets/images/spritesheets/map.bmp");
-
-	sf::Sprite sprite;
-	sprite.setTexture(texture);
-	sprite.setTextureRect(sf::IntRect(64, 0, 32, 32));
-	sprite.setPosition(sf::Vector2f(400 - 16, 300 - 16));
-
-	while (window.isOpen())
+	if (!initialized)
 	{
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-			{
-				window.close();
-			}
-		}
+		TZGDK::loadMusic("assets/sounds/stream/underground.flac", 1);
+		TZGDK::playMusic(1);
 
-		window.clear(sf::Color::Black);
+		TZGDK::setWindowSize(320, 320);
+		TZGDK::setWindowTitle("TZGDK TEST");
+		TZGDK::setWindowResolution(320, 320);
+		TZGDK::setFramerateLimit(60);
 
-		window.draw(sprite);
+		
+		TZGDK::loadTexture("assets/images/spritesheets/map.bmp", 1);
 
-		window.display();
+		TZGDK::sprite(1, tileX, 0, 1);
+		TZGDK::setSpriteTextureCoords(1, 64, 0, 32, 32);
+
+		//std::cout << TZGDK::getSpriteWidth(1);
+
+		initialized = true;
 	}
 
-	TZGDK::stopMusic();
-	TZGDK::destroy();
+	TZGDK::clearWindow(RGB(0, 0, 0));
+	
 
-	//std::cin.sync();
-	//std::cin.get();
+	/*if (!keypressed && TZGDK::getLastScanCode() >= 0)
+	{
+		keypressed = true;
+		//TZGDK::deleteSprite(1);
+		//TZGDK::unloadTexture(1);
+		TZGDK::setSpriteVisible(1, false);
+	}
+	else if(!keypressed)
+		TZGDK::sprite(1, tileX++, 0, 1);*/
 
-	return 0;
+	if (getLastScanCode() >= 0)
+	{
+		std::cout << getLastScanCode() << std::endl;
+	}
 }
 
