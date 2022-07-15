@@ -51,8 +51,8 @@ void TZGDK::destroy()
 
 void TZGDK::draw_sprites()
 {
-	auto it = (*(TZGDK::getInstance().loadedSprites)).begin();
-	auto end = (*(TZGDK::getInstance().loadedSprites)).end();
+	auto it = TZGDK::getInstance().loadedSprites->begin();
+	auto end = TZGDK::getInstance().loadedSprites->end();
 	for (; it != end; ++it)
 	{
 		SpriteWrapper currentSprite = it->second;
@@ -106,7 +106,7 @@ void TZGDK::stopMusic()
 
 void TZGDK::setWindowSize(int width, int height)
 {
-	(*(TZGDK::getInstance().window)).setSize(sf::Vector2u(width, height));
+	TZGDK::getInstance().window->setSize(sf::Vector2u(width, height));
 }
 
 void TZGDK::setWindowTitle(const char* title)
@@ -114,25 +114,26 @@ void TZGDK::setWindowTitle(const char* title)
 	(*(TZGDK::getInstance().window)).setTitle(title);
 }
 
-void TZGDK::setWindowResolution(int width, int height)
+void TZGDK::setWindowResolution(float width, float height)
 {
 	/// TODO: Make a solution for automatically sizing the viewport inside the window without stretching
-	(*(TZGDK::getInstance().window)).setView(sf::View(sf::FloatRect(0, 0, width, height)));
+	/// using black bars on sides or top/bottom depending on the situation.
+	TZGDK::getInstance().window->setView(sf::View(sf::FloatRect(0, 0, width, height)));
 }
 
-int TZGDK::getResolutionWidth()
+float TZGDK::getResolutionWidth()
 {
 	return TZGDK::getInstance().window->getView().getSize().x;
 }
 
-int TZGDK::getResolutionHeight()
+float TZGDK::getResolutionHeight()
 {
-	return (*(TZGDK::getInstance().window)).getView().getSize().y;
+	return TZGDK::getInstance().window->getView().getSize().y;
 }
 
 bool TZGDK::isWindowOpen()
 {
-	return (*(TZGDK::getInstance().window)).isOpen();
+	return TZGDK::getInstance().window->isOpen();
 }
 
 sf::RenderWindow* TZGDK::getWindow()
@@ -224,12 +225,12 @@ void TZGDK::unloadTexture(int texture_id)
 	(*(TZGDK::getInstance().loadedTextures)).erase(texture_id);
 }
 
-int TZGDK::getSpriteWidth(int sprite_id)
+float TZGDK::getSpriteWidth(int sprite_id)
 {
 	return TZGDK::getInstance().loadedSprites->at(sprite_id).sprite->getLocalBounds().width;
 }
 
-int TZGDK::getSpriteHeight(int sprite_id)
+float TZGDK::getSpriteHeight(int sprite_id)
 {
 	return TZGDK::getInstance().loadedSprites->at(sprite_id).sprite->getLocalBounds().height;
 }
@@ -269,11 +270,11 @@ int main(char* args[], int nargs)
 
 			case sf::Event::KeyPressed:
 				TZGDK::lastScanCode = event.key.code;
-				tzgdk::trigger_scancode(event.key.code);
+				tzgdk::admin::trigger_scancode(event.key.code);
 				break;
 
 			case sf::Event::KeyReleased:
-				tzgdk::untrigger_scancode(event.key.code);
+				tzgdk::admin::untrigger_scancode(event.key.code);
 				break;
 
 			default:

@@ -67,9 +67,9 @@ public:
 
 	static void setWindowSize(int width, int height);
 	static void setWindowTitle(const char* title);
-	static void setWindowResolution(int width, int height);
-	static int getResolutionWidth();
-	static int getResolutionHeight();
+	static void setWindowResolution(float width, float height);
+	static float getResolutionWidth();
+	static float getResolutionHeight();
 	static bool isWindowOpen();
 	static sf::RenderWindow* getWindow();
 	static void clearWindow(RGB color);
@@ -82,8 +82,8 @@ public:
 	static bool setSpriteTextureCoords(int sprite_id, int tex_x, int tex_y, int width, int height);
 	static void deleteSprite(int sprite_id);
 	static void unloadTexture(int texture_id);
-	static int getSpriteWidth(int sprite_id);
-	static int getSpriteHeight(int sprite_id);
+	static float getSpriteWidth(int sprite_id);
+	static float getSpriteHeight(int sprite_id);
 	static void setSpriteVisible(int sprite_id, bool is_visible);
 	static bool getSpriteVisible(int sprite_id);
 

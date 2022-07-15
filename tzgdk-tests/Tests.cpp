@@ -33,7 +33,7 @@ void TZGDK::GameLoop()
 	TZGDK::clearWindow(RGB(0, 0, 0));
 	
 
-	if (!keypressed && tzgdk::B() && tzgdk::V())
+	if (!keypressed && tzgdk::sc::B() && tzgdk::sc::V())
 	{
 		keypressed = true;
 		//TZGDK::deleteSprite(1);
