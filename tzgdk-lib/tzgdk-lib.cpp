@@ -5,6 +5,7 @@
 #include "framework.h"
 #include "tzgdk-lib.h"
 
+#include <iostream>
 
 namespace tzgdk
 {
@@ -22,9 +23,12 @@ namespace tzgdk
 		std::map<int, sf::Image*>* loadedImages;
 		std::map<int, sf::Texture*>* loadedTextures;
 		std::map<int, SpriteWrapper>* loadedSprites;
+		std::vector<int>** spritePriorities;
 
 		/// TODO: Investigate multi-threading for drawing
 		//std::thread* drawThread;
+
+		sf::Clock elapsedTimer;
 
 		void init()
 		{
@@ -39,10 +43,23 @@ namespace tzgdk
 			loadedTextures = new std::map<int, sf::Texture*>;
 
 			loadedSprites = new std::map<int, SpriteWrapper>;
+
+			spritePriorities = (std::vector<int>**)malloc(sizeof(std::vector<int>) * MAX_SPRITE_PRIORITIES);
+			for (int i = 0; i < MAX_SPRITE_PRIORITIES; i++)
+			{
+				spritePriorities[i] = new std::vector<int>;
+			}
 		}
 
 		void destroy()
 		{
+			for (int i = 0; i < MAX_SPRITE_PRIORITIES; i++)
+			{
+				spritePriorities[i]->clear();
+				delete spritePriorities[i];
+			}
+			delete spritePriorities;
+
 			loadedSprites->clear();
 			delete loadedSprites;
 
@@ -66,7 +83,7 @@ namespace tzgdk
 
 		void draw_sprites()
 		{
-			auto it = loadedSprites->begin();
+			/*auto it = loadedSprites->begin();
 			auto end = loadedSprites->end();
 			for (; it != end; ++it)
 			{
@@ -74,6 +91,19 @@ namespace tzgdk
 
 				if (currentSprite.isVisible)
 					getWindow()->draw(*(currentSprite.sprite));
+			}*/
+
+			for (int i = 0; i < MAX_SPRITE_PRIORITIES; i++)
+			{
+				auto it = admin::spritePriorities[i]->begin();
+				auto end = admin::spritePriorities[i]->end();
+				for (; it < end; it++)
+				{
+					SpriteWrapper currentSprite = loadedSprites->at(*it);
+
+					if (currentSprite.isVisible)
+						getWindow()->draw(*(currentSprite.sprite));
+				}
 			}
 		}
 
@@ -116,6 +146,11 @@ namespace tzgdk
 	void stopMusic()
 	{
 		admin::currentMusic->stop();
+	}
+
+	bool musicLooping()
+	{
+		return admin::currentMusic->getLoop();
 	}
 
 	// WINDOW //
@@ -204,6 +239,9 @@ namespace tzgdk
 			sprite = new sf::Sprite;
 
 			admin::loadedSprites->insert_or_assign(sprite_id, sprite);
+			admin::spritePriorities[0]->push_back(sprite_id);
+
+			std::cout << "Setting sprite " << sprite_id << " to priority 0" << std::endl;
 		}
 		else
 		{
@@ -234,6 +272,20 @@ namespace tzgdk
 	void deleteSprite(int sprite_id)
 	{
 		admin::loadedSprites->erase(sprite_id);
+		for (int i = 0; i < MAX_SPRITE_PRIORITIES; i++)
+		{
+			auto it = admin::spritePriorities[i]->begin();
+			auto end = admin::spritePriorities[i]->end();
+			for (; it < end; it++)
+			{
+				if (*it == sprite_id)
+				{
+					admin::spritePriorities[i]->erase(it);
+					std::cout << "Removing sprite " << sprite_id << " from priority " << i << std::endl;
+					break;
+				}
+			}
+		}
 	}
 
 	void unloadTexture(int texture_id)
@@ -261,11 +313,55 @@ namespace tzgdk
 		return admin::loadedSprites->at(sprite_id).isVisible;
 	}
 
+	float getSpriteX(int sprite_id)
+	{
+		return admin::loadedSprites->at(sprite_id).sprite->getPosition().x;
+	}
+
+	float getSpriteY(int sprite_id)
+	{
+		return admin::loadedSprites->at(sprite_id).sprite->getPosition().y;
+	}
+
+	void setSpritePriority(int sprite_id, const short priority)
+	{
+		if (priority >= MAX_SPRITE_PRIORITIES)
+		{
+			std::cout << "Tried to set sprite priority too high: " << priority << std::endl;
+			return;
+		}
+
+		for (int i = 0; i < MAX_SPRITE_PRIORITIES; i++)
+		{
+			auto it = admin::spritePriorities[i]->begin();
+			auto end = admin::spritePriorities[i]->end();
+			for (; it < end; it++)
+			{
+				if (*it == sprite_id)
+				{
+					admin::spritePriorities[i]->erase(it);
+					std::cout << "Removing sprite " << sprite_id << " from priority " << i << std::endl;
+					break;
+				}
+			}
+		}
+
+		std::cout << "Adding sprite " << sprite_id << " to priority " << priority << std::endl;
+		admin::spritePriorities[priority]->push_back(sprite_id);
+	}
+
 	// INPUT //
 
 	int getLastScanCode()
 	{
 		return admin::lastScanCode;
+	}
+
+	// TIME //
+
+	const int getMilliTime()
+	{
+		return admin::elapsedTimer.getElapsedTime().asMilliseconds();
 	}
 
 }
@@ -308,6 +404,9 @@ int main(char* args[], int nargs)
 	}
 
 	tzgdk::admin::destroy();
+
+	//std::cin.sync();
+	//std::cin.get();
 
 	return 0;
 }

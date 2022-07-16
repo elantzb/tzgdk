@@ -129,6 +129,22 @@ namespace tzgdk
 		{
 			return admin::scancode_map.count(sf::Keyboard::Key::Enter) > 0 && admin::scancode_map.at(sf::Keyboard::Key::Enter);
 		}
+		bool Left()
+		{
+			return admin::scancode_map.count(sf::Keyboard::Key::Left) > 0 && admin::scancode_map.at(sf::Keyboard::Key::Left);
+		}
+		bool Right()
+		{
+			return admin::scancode_map.count(sf::Keyboard::Key::Right) > 0 && admin::scancode_map.at(sf::Keyboard::Key::Right);
+		}
+		bool Up()
+		{
+			return admin::scancode_map.count(sf::Keyboard::Key::Up) > 0 && admin::scancode_map.at(sf::Keyboard::Key::Up);
+		}
+		bool Down()
+		{
+			return admin::scancode_map.count(sf::Keyboard::Key::Down) > 0 && admin::scancode_map.at(sf::Keyboard::Key::Down);
+		}
 	}
 
 	namespace admin

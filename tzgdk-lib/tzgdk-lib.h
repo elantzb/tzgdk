@@ -1,9 +1,13 @@
 #pragma once
 #include <map>
 //#include <thread>
+#include <vector>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
+#include <SFML/System.hpp>
 #include "Scancodes.h"
+
+#define MAX_SPRITE_PRIORITIES 256
 
 namespace tzgdk
 {
@@ -43,6 +47,7 @@ namespace tzgdk
 	bool playMusic(int music_index);
 	bool playMusic(int music_index, bool do_loop);
 	void stopMusic();
+	bool musicLooping();
 
 	void setWindowSize(int width, int height);
 	void setWindowTitle(const char* title);
@@ -65,8 +70,13 @@ namespace tzgdk
 	float getSpriteHeight(int sprite_id);
 	void setSpriteVisible(int sprite_id, bool is_visible);
 	bool getSpriteVisible(int sprite_id);
+	float getSpriteX(int sprite_id);
+	float getSpriteY(int sprite_id);
+	void setSpritePriority(int sprite_id, const short priority);
 
-	int getLastScanCode();
+	int getLastScanCode(); /// TODO: move this to Scancodes files
+
+	const int getMilliTime();
 
 	extern void GameLoop();
 }

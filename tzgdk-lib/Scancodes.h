@@ -37,6 +37,10 @@ namespace tzgdk
 		bool LShift();
 		bool Space();
 		bool Enter();
+		bool Left();
+		bool Right();
+		bool Up();
+		bool Down();
 	}
 
 	namespace admin
