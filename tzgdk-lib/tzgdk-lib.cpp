@@ -16,13 +16,14 @@ namespace tzgdk
 		int lastScanCode = -1;
 
 		std::map<int, const char*>* musicMap;
-		sf::Music* currentMusic;
+		std::map<int, sf::Music*>* playingMusics;
 
-		sf::RenderWindow* window;
+		//sf::Window* window;
+		sf::RenderWindow* renderWindow;
 
 		std::map<int, sf::Image*>* loadedImages;
 		std::map<int, sf::Texture*>* loadedTextures;
-		std::map<int, SpriteWrapper>* loadedSprites;
+		std::map<int, SpriteWrapper*>* loadedSprites;
 		std::vector<int>** spritePriorities;
 
 		/// TODO: Investigate multi-threading for drawing
@@ -34,15 +35,16 @@ namespace tzgdk
 		{
 			musicMap = new std::map<int, const char*>;
 
-			currentMusic = new sf::Music;
+			playingMusics = new std::map<int, sf::Music*>;
 
-			admin::window = new sf::RenderWindow(sf::VideoMode(320, 320, 32), "My Window");
+			//window = new sf::Window(sf::VideoMode(320, 320, 32), "My Window");
+			renderWindow = new sf::RenderWindow(sf::VideoMode(320, 320, 32), "My Window");
 
 			loadedImages = new std::map<int, sf::Image*>;
 
 			loadedTextures = new std::map<int, sf::Texture*>;
 
-			loadedSprites = new std::map<int, SpriteWrapper>;
+			loadedSprites = new std::map<int, SpriteWrapper*>;
 
 			spritePriorities = (std::vector<int>**)malloc(sizeof(std::vector<int>) * MAX_SPRITE_PRIORITIES);
 			for (int i = 0; i < MAX_SPRITE_PRIORITIES; i++)
@@ -69,12 +71,18 @@ namespace tzgdk
 			loadedImages->clear();
 			delete loadedImages;
 
-			admin::window->~RenderWindow();
-			delete admin::window;
+			admin::renderWindow->~RenderWindow();
+			delete admin::renderWindow;
 
-			currentMusic->stop();
-			currentMusic->~Music();
-			delete currentMusic;
+			for (auto it = playingMusics->begin(); it != playingMusics->end(); it++)
+			{
+				sf::Music* currentMusic = it->second;
+				currentMusic->stop();
+				currentMusic->~Music();
+				delete currentMusic;
+			}
+			playingMusics->clear();
+			delete playingMusics;
 
 			musicMap->clear();
 			delete musicMap;
@@ -99,10 +107,10 @@ namespace tzgdk
 				auto end = admin::spritePriorities[i]->end();
 				for (; it < end; it++)
 				{
-					SpriteWrapper currentSprite = loadedSprites->at(*it);
+					SpriteWrapper* currentSprite = loadedSprites->at(*it);
 
-					if (currentSprite.isVisible)
-						getWindow()->draw(*(currentSprite.sprite));
+					if (currentSprite->isVisible)
+						getRenderWindow()->draw(*(currentSprite->sprite));
 				}
 			}
 		}
@@ -110,6 +118,26 @@ namespace tzgdk
 		void sync_events()
 		{
 			lastScanCode = -1;
+		}
+
+		bool textureExists(int texture_id)
+		{
+			return loadedTextures->count(texture_id) > 0;
+		}
+
+		sf::Texture* getTexture(int texture_id)
+		{
+			return loadedTextures->at(texture_id);
+		}
+
+		bool spriteExists(int sprite_id)
+		{
+			return loadedSprites->count(sprite_id) > 0;
+		}
+
+		SpriteWrapper* getSprite(int sprite_id)
+		{
+			return loadedSprites->at(sprite_id);
 		}
 	}
 
@@ -120,86 +148,87 @@ namespace tzgdk
 		admin::musicMap->insert_or_assign(music_index, path_to_file);
 	}
 
-	bool playMusic(int music_index)
-	{
-		const char* musicPath = admin::musicMap->at(music_index);
-		if (!admin::currentMusic->openFromFile(musicPath))
-			return false;
-
-		admin::currentMusic->play();
-
-		return true;
-	}
-
 	bool playMusic(int music_index, bool do_loop)
 	{
 		const char* musicPath = admin::musicMap->at(music_index);
-		if (!admin::currentMusic->openFromFile(musicPath))
+		sf::Music* newMusic = new sf::Music;
+		if (!newMusic->openFromFile(musicPath))
 			return false;
 
-		admin::currentMusic->setLoop(true);
-		admin::currentMusic->play();
+		newMusic->setLoop(do_loop);
+		newMusic->play();
+		admin::playingMusics->insert_or_assign(music_index, newMusic);
 
 		return true;
 	}
 
-	void stopMusic()
+	void stopMusic(int music_index)
 	{
-		admin::currentMusic->stop();
+		admin::playingMusics->at(music_index)->stop();
 	}
 
-	bool musicLooping()
+	bool musicLooping(int music_index)
 	{
-		return admin::currentMusic->getLoop();
+		if(admin::playingMusics->count(music_index) > 0)
+			return admin::playingMusics->at(music_index)->getLoop();
+		return false;
+	}
+
+	bool musicPlaying(int music_index)
+	{
+		if(!admin::playingMusics->count(music_index))
+			return false;
+
+		return admin::playingMusics->at(music_index)->getStatus() == sf::SoundSource::Status::Playing;
 	}
 
 	// WINDOW //
 
 	void setWindowSize(int width, int height)
 	{
-		admin::window->setSize(sf::Vector2u(width, height));
+		admin::renderWindow->setSize(sf::Vector2u(width, height));
 	}
 
 	void setWindowTitle(const char* title)
 	{
-		admin::window->setTitle(title);
+		admin::renderWindow->setTitle(title);
 	}
 
 	void setWindowResolution(float width, float height)
 	{
 		/// TODO: Make a solution for automatically sizing the viewport inside the admin::window without stretching
 		/// using black bars on sides or top/bottom depending on the situation.
-		admin::window->setView(sf::View(sf::FloatRect(0, 0, width, height)));
+		admin::renderWindow->setView(sf::View(sf::FloatRect(0, 0, width, height)));
 	}
 
 	float getResolutionWidth()
 	{
-		return admin::window->getView().getSize().x;
+		return admin::renderWindow->getView().getSize().x;
 	}
 
 	float getResolutionHeight()
 	{
-		return admin::window->getView().getSize().y;
+		return admin::renderWindow->getView().getSize().y;
 	}
 
 	bool isWindowOpen()
 	{
-		return admin::window->isOpen();
+		return admin::renderWindow->isOpen();
 	}
 
-	sf::RenderWindow* getWindow()
+	sf::RenderWindow* getRenderWindow()
 	{
-		return admin::window;
+		return admin::renderWindow;
 	}
 
 	void clearWindow(RGB color)
 	{
-		admin::window->clear(sf::Color(color.r, color.g, color.b, 255));
+		admin::renderWindow->clear(sf::Color(color.r, color.g, color.b, 255));
 	}
 
 	void setFramerateLimit(unsigned int limit)
 	{
-		admin::window->setFramerateLimit(limit);
+		admin::renderWindow->setFramerateLimit(limit);
 	}
 
 	// TEXTURES AND SPRITES //
@@ -231,24 +260,28 @@ namespace tzgdk
 		return true;
 	}
 
-	void sprite(int sprite_id, float window_x, float window_y, int texture_id)
+	void sprite(int sprite_id, float window_x, float window_y, int texture_id, bool is_visible)
 	{
+		if (!admin::textureExists(texture_id))
+			return;
+
 		sf::Sprite* sprite;
-		if (!admin::loadedSprites->count(sprite_id))
+		if (!admin::spriteExists(sprite_id))
 		{
 			sprite = new sf::Sprite;
+			SpriteWrapper* sw = new SpriteWrapper(sprite);
 
-			admin::loadedSprites->insert_or_assign(sprite_id, sprite);
+			admin::loadedSprites->insert_or_assign(sprite_id, sw);
 			admin::spritePriorities[0]->push_back(sprite_id);
 
-			std::cout << "Setting sprite " << sprite_id << " to priority 0" << std::endl;
+			//std::cout << "Setting sprite " << sprite_id << " to priority 0" << std::endl;
 		}
 		else
 		{
-			sprite = admin::loadedSprites->at(sprite_id).sprite;
+			sprite = admin::getSprite(sprite_id)->sprite;
 		}
 
-		sf::Texture* tex = admin::loadedTextures->at(texture_id);
+		sf::Texture* tex = admin::getTexture(texture_id);
 
 		sprite->setTexture(*tex);
 		sprite->setPosition(sf::Vector2f(window_x, window_y));
@@ -257,16 +290,28 @@ namespace tzgdk
 	bool setSpriteTextureCoords(int sprite_id, int tex_x, int tex_y, int width, int height)
 	{
 		sf::Sprite* sprite;
-		if (!admin::loadedSprites->count(sprite_id))
+		if (!admin::spriteExists(sprite_id))
 			return false;
 		else
 		{
-			sprite = admin::loadedSprites->at(sprite_id).sprite;
+			sprite = admin::getSprite(sprite_id)->sprite;
 		}
 
 		sprite->setTextureRect(sf::IntRect(tex_x, tex_y, width, height));
 
 		return true;
+	}
+
+	void setSpriteTextureCoordsNormalized(int sprite_id, float tex_x_n, float tex_y_n, float width_n, float height_n, int texture_id)
+	{
+		sf::Vector2u textureBounds = admin::getTexture(texture_id)->getSize();
+
+		int tex_x = (int)(textureBounds.x * tex_x_n);
+		int tex_y = (int)(textureBounds.y * tex_y_n);
+		int width = (int)(textureBounds.x * width_n);
+		int height = (int)(textureBounds.y * height_n);
+
+		setSpriteTextureCoords(sprite_id, tex_x, tex_y, width, height);
 	}
 
 	void deleteSprite(int sprite_id)
@@ -281,7 +326,7 @@ namespace tzgdk
 				if (*it == sprite_id)
 				{
 					admin::spritePriorities[i]->erase(it);
-					std::cout << "Removing sprite " << sprite_id << " from priority " << i << std::endl;
+					//std::cout << "Removing sprite " << sprite_id << " from priority " << i << std::endl;
 					break;
 				}
 			}
@@ -295,39 +340,51 @@ namespace tzgdk
 
 	float getSpriteWidth(int sprite_id)
 	{
-		return admin::loadedSprites->at(sprite_id).sprite->getLocalBounds().width;
+		if (!admin::spriteExists(sprite_id))
+			return 0.0f;
+
+		return admin::getSprite(sprite_id)->sprite->getLocalBounds().width;
 	}
 
 	float getSpriteHeight(int sprite_id)
 	{
-		return admin::loadedSprites->at(sprite_id).sprite->getLocalBounds().height;
+		if (!admin::spriteExists(sprite_id))
+			return 0.0f;
+
+		return admin::getSprite(sprite_id)->sprite->getLocalBounds().height;
 	}
 
 	void setSpriteVisible(int sprite_id, bool is_visible)
 	{
-		admin::loadedSprites->at(sprite_id).isVisible = is_visible;
+		admin::getSprite(sprite_id)->isVisible = is_visible;
 	}
 
 	bool getSpriteVisible(int sprite_id)
 	{
-		return admin::loadedSprites->at(sprite_id).isVisible;
+		return admin::loadedSprites->at(sprite_id)->isVisible;
 	}
 
 	float getSpriteX(int sprite_id)
 	{
-		return admin::loadedSprites->at(sprite_id).sprite->getPosition().x;
+		if (!admin::spriteExists(sprite_id))
+			return 0.0f;
+
+		return admin::getSprite(sprite_id)->sprite->getPosition().x;
 	}
 
 	float getSpriteY(int sprite_id)
 	{
-		return admin::loadedSprites->at(sprite_id).sprite->getPosition().y;
+		if (!admin::spriteExists(sprite_id))
+			return 0.0f;
+
+		return admin::loadedSprites->at(sprite_id)->sprite->getPosition().y;
 	}
 
 	void setSpritePriority(int sprite_id, const short priority)
 	{
 		if (priority >= MAX_SPRITE_PRIORITIES)
 		{
-			std::cout << "Tried to set sprite priority too high: " << priority << std::endl;
+			//std::cout << "Tried to set sprite priority too high: " << priority << std::endl;
 			return;
 		}
 
@@ -340,14 +397,103 @@ namespace tzgdk
 				if (*it == sprite_id)
 				{
 					admin::spritePriorities[i]->erase(it);
-					std::cout << "Removing sprite " << sprite_id << " from priority " << i << std::endl;
+					//std::cout << "Removing sprite " << sprite_id << " from priority " << i << std::endl;
 					break;
 				}
 			}
 		}
 
-		std::cout << "Adding sprite " << sprite_id << " to priority " << priority << std::endl;
+		//std::cout << "Adding sprite " << sprite_id << " to priority " << priority << std::endl;
 		admin::spritePriorities[priority]->push_back(sprite_id);
+	}
+
+	float getSpriteTop(int sprite_id)
+	{
+		return admin::loadedSprites->at(sprite_id)->sprite->getGlobalBounds().top;
+	}
+
+	float getSpriteRight(int sprite_id)
+	{
+		sf::FloatRect bounds = admin::getSprite(sprite_id)->sprite->getGlobalBounds();
+		return bounds.left + bounds.width;
+	}
+
+	float getSpriteBottom(int sprite_id)
+	{
+		sf::FloatRect bounds = admin::getSprite(sprite_id)->sprite->getGlobalBounds();
+		return bounds.top + bounds.height;
+	}
+
+	float getSpriteLeft(int sprite_id)
+	{
+		return admin::getSprite(sprite_id)->sprite->getGlobalBounds().left;
+	}
+
+	bool testSpriteOverlap(int sprite_1, int sprite_2)
+	{
+		if (!admin::spriteExists(sprite_1) || !admin::spriteExists(sprite_2))
+			return false;
+
+		sf::FloatRect bounds1 = admin::getSprite(sprite_1)->sprite->getGlobalBounds();
+		sf::FloatRect bounds2 = admin::getSprite(sprite_2)->sprite->getGlobalBounds();
+
+		return bounds1.left < (bounds2.left + bounds2.width) &&
+			bounds2.left < (bounds1.left + bounds1.width) &&
+			bounds1.top < (bounds2.top + bounds2.height) &&
+			bounds2.top < (bounds1.top + bounds1.height);
+	}
+
+	void setSpriteScale(int sprite_id, float scale_x, float scale_y)
+	{
+		admin::getSprite(sprite_id)->sprite->setScale(scale_x, scale_y);
+	}
+
+	void createAnimatedSprite(int sprite_id, const char* image_file_path, int cols, int rows, int texture_id)
+	{
+		if (!admin::textureExists(texture_id))
+			loadTexture(image_file_path, texture_id);
+
+		sprite(sprite_id, 0, 0, texture_id, false);
+		admin::getSprite(sprite_id)->textureCols = cols;
+		admin::getSprite(sprite_id)->textureRows = rows;
+
+		sf::Vector2u textureBounds = admin::getTexture(texture_id)->getSize();
+		setSpriteTextureCoords(sprite_id, 0, 0, textureBounds.x / cols, textureBounds.y / rows);
+
+	}
+
+	void setSpriteFrame(int sprite_id, int sprite_frame, int texture_id)
+	{
+		if (!admin::spriteExists(sprite_id) || !admin::textureExists(texture_id))
+			return;
+		SpriteWrapper* sw = admin::getSprite(sprite_id);
+		sf::Vector2u textureBounds = admin::getTexture(texture_id)->getSize();
+
+		sw->spriteFrame = sprite_frame;
+
+		//std::cout << "For frame " << sprite_frame << ", texture bounds " << textureBounds.x << ", " << textureBounds.y << std::endl;
+		//std::cout << " and wrapper data of cols=" << sw.textureCols << " rows=" << sw.textureRows << std::endl;
+
+		int frameWidth = textureBounds.x / sw->textureCols;
+		int frameHeight = textureBounds.y / sw->textureRows;
+
+		int w = textureBounds.x / sw->textureCols;
+		int h = textureBounds.y / sw->textureRows;
+
+		int col = sprite_frame % sw->textureCols;
+		int row = (sprite_frame - col) / sw->textureRows;
+
+		//std::cout << "picked col " << col << " and row " << row << std::endl;
+
+		setSpriteTextureCoords(sprite_id, col * frameWidth, row * frameHeight, w, h);
+	}
+
+	int getSpriteFrame(int sprite_id)
+	{
+		if (!admin::spriteExists(sprite_id))
+			return -1;
+
+		return admin::getSprite(sprite_id)->spriteFrame;
 	}
 
 	// INPUT //
@@ -374,12 +520,12 @@ int main(char* args[], int nargs)
 	while (tzgdk::isWindowOpen())
 	{
 		sf::Event event;
-		while (tzgdk::getWindow()->pollEvent(event))
+		while (tzgdk::getRenderWindow()->pollEvent(event))
 		{
 			switch (event.type)
 			{
 			case sf::Event::Closed:
-				tzgdk::getWindow()->close();
+				tzgdk::getRenderWindow()->close();
 				break;
 
 			case sf::Event::KeyPressed:
@@ -400,7 +546,7 @@ int main(char* args[], int nargs)
 
 		tzgdk::admin::draw_sprites();
 		tzgdk::admin::sync_events();
-		tzgdk::getWindow()->display();
+		tzgdk::getRenderWindow()->display();
 	}
 
 	tzgdk::admin::destroy();

@@ -43,6 +43,14 @@ namespace tzgdk
 		bool Down();
 	}
 
+	namespace mouse
+	{
+		int getMouseX();
+		int getMouseY();
+
+		bool isButtonPressed(int button);
+	}
+
 	namespace admin
 	{
 		extern std::map<int, bool> scancode_map;

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Scancodes.h"
+#include "tzgdk-lib.h"
 
 namespace tzgdk
 {
@@ -144,6 +145,25 @@ namespace tzgdk
 		bool Down()
 		{
 			return admin::scancode_map.count(sf::Keyboard::Key::Down) > 0 && admin::scancode_map.at(sf::Keyboard::Key::Down);
+		}
+	}
+
+	namespace mouse
+	{
+		int getMouseX()
+		{
+			return sf::Mouse::getPosition(*tzgdk::getRenderWindow()).x;
+		}
+
+		int getMouseY()
+		{
+			return sf::Mouse::getPosition(*tzgdk::getRenderWindow()).y;
+		}
+
+		bool isButtonPressed(int button)
+		{
+			return sf::Mouse::isButtonPressed((sf::Mouse::Button)(button-1)
+			);
 		}
 	}
 
