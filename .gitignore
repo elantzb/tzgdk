@@ -32,10 +32,12 @@
 *.app
 
 # VCPKG
-/vcpkg*
+/vcpkg
+/vcpkg_installed
 
 /.vs
 /Debug
 /*/Debug
 /Release
 /*/Release
+/build
